@@ -71,22 +71,22 @@
         }
       }
     },
-    "AuthLogGroup": {
+    "LoginLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/auth-service-dev-auth"
+        "LogGroupName": "/aws/lambda/auth-service-cognito-dev-login"
       }
     },
-    "PublicEndpointLogGroup": {
+    "SignupLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/auth-service-dev-publicEndpoint"
+        "LogGroupName": "/aws/lambda/auth-service-cognito-dev-signup"
       }
     },
     "PrivateEndpointLogGroup": {
       "Type": "AWS::Logs::LogGroup",
       "Properties": {
-        "LogGroupName": "/aws/lambda/auth-service-dev-privateEndpoint"
+        "LogGroupName": "/aws/lambda/auth-service-cognito-dev-privateEndpoint"
       }
     },
     "IamRoleLambdaExecution": {
@@ -114,7 +114,7 @@
               "Fn::Join": [
                 "-",
                 [
-                  "auth-service",
+                  "auth-service-cognito",
                   "dev",
                   "lambda"
                 ]
@@ -127,12 +127,11 @@
                   "Effect": "Allow",
                   "Action": [
                     "logs:CreateLogStream",
-                    "logs:CreateLogGroup",
-                    "logs:TagResource"
+                    "logs:CreateLogGroup"
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/auth-service-dev*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/auth-service-cognito-dev*:*"
                     }
                   ]
                 },
@@ -143,9 +142,18 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/auth-service-dev*:*:*"
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/auth-service-cognito-dev*:*:*"
                     }
                   ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cognito-idp:AdminInitiateAuth",
+                    "cognito-idp:AdminCreateUser",
+                    "cognito-idp:AdminSetUserPassword"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -156,7 +164,7 @@
           "Fn::Join": [
             "-",
             [
-              "auth-service",
+              "auth-service-cognito",
               "dev",
               {
                 "Ref": "AWS::Region"
@@ -167,23 +175,28 @@
         }
       }
     },
-    "AuthLambdaFunction": {
+    "LoginLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service/dev/1678009996188-2023-03-05T09:53:16.188Z/auth-service.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
         },
-        "Handler": "src/handlers/auth.handler",
+        "Handler": "user/login.handler",
         "Runtime": "nodejs16.x",
-        "FunctionName": "auth-service-dev-auth",
+        "FunctionName": "auth-service-cognito-dev-login",
         "MemorySize": 128,
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "AUTH0_PUBLIC_KEY": "-----BEGIN CERTIFICATE-----\nMIIDFTCCAf2gAwIBAgIJF9f+n30H55yAMA0GCSqGSIb3DQEBCwUAMCgxJjAkBgNV\nBAMTHXNscy1taWNyb3NlcnZpY2UuZXUuYXV0aDAuY29tMB4XDTIzMDMwNDE5NTY1\nNloXDTM2MTExMDE5NTY1NlowKDEmMCQGA1UEAxMdc2xzLW1pY3Jvc2VydmljZS5l\ndS5hdXRoMC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJmTyd\nhsNss0CL/kWb7C8QLELH3EhrskMcb2YcJJXvXuyMOEyUQXewpyOhZrwnCY/zat5S\nW6UeenqroBamAnpRKvCoti/+Jw+AbpbUSE8TD1qI+d5sye4tUNbsna4UzfM9z1sx\n4ZeHL4Ep3iT0SbkhT2iAyloMHgXuYOoqox0jg1NNvPGEn0QzRLOiGHNMbFIG127X\nS02qo548636aMDqwSJNU9lel7lr2SSCbaenSy43b+ZPM3AkKcpAIhR1o9Ncx6tUL\nBL9kgojxlxcf2xwV1FKDNRb1K38EnN+wi0YFBIL/JIobh96Dsvlf2PFVyOOzrDeS\no88Q7bsYcubZQGODAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYE\nFFKuMil+pcmdRQvbc3OP/BHT5HxzMA4GA1UdDwEB/wQEAwIChDANBgkqhkiG9w0B\nAQsFAAOCAQEAXdw1SmJR9QSwrkbCjgie5GDwAdHJeXXPOOeRkKAnulmxxLPBbIFV\ntUpXVWHeMoOOGlr74exX3ICtJabzEKReOGvcxI1xTgIdOGL3HISZR2JRPxAG5o2A\nDR+Hoz11IkCb9sY7Y5yhG7axFkxDd8Gk6uoIZHhjsYeBw/ffEYI+RGIlqynWC1U6\nt4y4V085sFZGJzAbTTgEtNx1DnhaZd90/Cb/48RIOYrJhDkyEDSFkoadq38QPkrW\nEZ7X7/UBhMdXGuk9yw1peEPrqmwU4odx4LFudzxRObByUWkBoTLTbHve5mTUT4BX\nEyUyVa8POa1Gb3NwIu4FdLJdKiSLgx1qkw==\n-----END CERTIFICATE-----"
+            "user_pool_id": {
+              "Ref": "UserPool"
+            },
+            "client_id": {
+              "Ref": "UserClient"
+            }
           }
         },
         "Role": {
@@ -194,26 +207,31 @@
         }
       },
       "DependsOn": [
-        "AuthLogGroup"
+        "LoginLogGroup"
       ]
     },
-    "PublicEndpointLambdaFunction": {
+    "SignupLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service/dev/1678009996188-2023-03-05T09:53:16.188Z/auth-service.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
         },
-        "Handler": "src/handlers/public.handler",
+        "Handler": "user/signup.handler",
         "Runtime": "nodejs16.x",
-        "FunctionName": "auth-service-dev-publicEndpoint",
+        "FunctionName": "auth-service-cognito-dev-signup",
         "MemorySize": 128,
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "AUTH0_PUBLIC_KEY": "-----BEGIN CERTIFICATE-----\nMIIDFTCCAf2gAwIBAgIJF9f+n30H55yAMA0GCSqGSIb3DQEBCwUAMCgxJjAkBgNV\nBAMTHXNscy1taWNyb3NlcnZpY2UuZXUuYXV0aDAuY29tMB4XDTIzMDMwNDE5NTY1\nNloXDTM2MTExMDE5NTY1NlowKDEmMCQGA1UEAxMdc2xzLW1pY3Jvc2VydmljZS5l\ndS5hdXRoMC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJmTyd\nhsNss0CL/kWb7C8QLELH3EhrskMcb2YcJJXvXuyMOEyUQXewpyOhZrwnCY/zat5S\nW6UeenqroBamAnpRKvCoti/+Jw+AbpbUSE8TD1qI+d5sye4tUNbsna4UzfM9z1sx\n4ZeHL4Ep3iT0SbkhT2iAyloMHgXuYOoqox0jg1NNvPGEn0QzRLOiGHNMbFIG127X\nS02qo548636aMDqwSJNU9lel7lr2SSCbaenSy43b+ZPM3AkKcpAIhR1o9Ncx6tUL\nBL9kgojxlxcf2xwV1FKDNRb1K38EnN+wi0YFBIL/JIobh96Dsvlf2PFVyOOzrDeS\no88Q7bsYcubZQGODAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYE\nFFKuMil+pcmdRQvbc3OP/BHT5HxzMA4GA1UdDwEB/wQEAwIChDANBgkqhkiG9w0B\nAQsFAAOCAQEAXdw1SmJR9QSwrkbCjgie5GDwAdHJeXXPOOeRkKAnulmxxLPBbIFV\ntUpXVWHeMoOOGlr74exX3ICtJabzEKReOGvcxI1xTgIdOGL3HISZR2JRPxAG5o2A\nDR+Hoz11IkCb9sY7Y5yhG7axFkxDd8Gk6uoIZHhjsYeBw/ffEYI+RGIlqynWC1U6\nt4y4V085sFZGJzAbTTgEtNx1DnhaZd90/Cb/48RIOYrJhDkyEDSFkoadq38QPkrW\nEZ7X7/UBhMdXGuk9yw1peEPrqmwU4odx4LFudzxRObByUWkBoTLTbHve5mTUT4BX\nEyUyVa8POa1Gb3NwIu4FdLJdKiSLgx1qkw==\n-----END CERTIFICATE-----"
+            "user_pool_id": {
+              "Ref": "UserPool"
+            },
+            "client_id": {
+              "Ref": "UserClient"
+            }
           }
         },
         "Role": {
@@ -224,7 +242,7 @@
         }
       },
       "DependsOn": [
-        "PublicEndpointLogGroup"
+        "SignupLogGroup"
       ]
     },
     "PrivateEndpointLambdaFunction": {
@@ -234,16 +252,21 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service/dev/1678009996188-2023-03-05T09:53:16.188Z/auth-service.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
         },
-        "Handler": "src/handlers/private.handler",
+        "Handler": "user/private.handler",
         "Runtime": "nodejs16.x",
-        "FunctionName": "auth-service-dev-privateEndpoint",
+        "FunctionName": "auth-service-cognito-dev-privateEndpoint",
         "MemorySize": 128,
         "Timeout": 6,
         "Environment": {
           "Variables": {
-            "AUTH0_PUBLIC_KEY": "-----BEGIN CERTIFICATE-----\nMIIDFTCCAf2gAwIBAgIJF9f+n30H55yAMA0GCSqGSIb3DQEBCwUAMCgxJjAkBgNV\nBAMTHXNscy1taWNyb3NlcnZpY2UuZXUuYXV0aDAuY29tMB4XDTIzMDMwNDE5NTY1\nNloXDTM2MTExMDE5NTY1NlowKDEmMCQGA1UEAxMdc2xzLW1pY3Jvc2VydmljZS5l\ndS5hdXRoMC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJmTyd\nhsNss0CL/kWb7C8QLELH3EhrskMcb2YcJJXvXuyMOEyUQXewpyOhZrwnCY/zat5S\nW6UeenqroBamAnpRKvCoti/+Jw+AbpbUSE8TD1qI+d5sye4tUNbsna4UzfM9z1sx\n4ZeHL4Ep3iT0SbkhT2iAyloMHgXuYOoqox0jg1NNvPGEn0QzRLOiGHNMbFIG127X\nS02qo548636aMDqwSJNU9lel7lr2SSCbaenSy43b+ZPM3AkKcpAIhR1o9Ncx6tUL\nBL9kgojxlxcf2xwV1FKDNRb1K38EnN+wi0YFBIL/JIobh96Dsvlf2PFVyOOzrDeS\no88Q7bsYcubZQGODAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYE\nFFKuMil+pcmdRQvbc3OP/BHT5HxzMA4GA1UdDwEB/wQEAwIChDANBgkqhkiG9w0B\nAQsFAAOCAQEAXdw1SmJR9QSwrkbCjgie5GDwAdHJeXXPOOeRkKAnulmxxLPBbIFV\ntUpXVWHeMoOOGlr74exX3ICtJabzEKReOGvcxI1xTgIdOGL3HISZR2JRPxAG5o2A\nDR+Hoz11IkCb9sY7Y5yhG7axFkxDd8Gk6uoIZHhjsYeBw/ffEYI+RGIlqynWC1U6\nt4y4V085sFZGJzAbTTgEtNx1DnhaZd90/Cb/48RIOYrJhDkyEDSFkoadq38QPkrW\nEZ7X7/UBhMdXGuk9yw1peEPrqmwU4odx4LFudzxRObByUWkBoTLTbHve5mTUT4BX\nEyUyVa8POa1Gb3NwIu4FdLJdKiSLgx1qkw==\n-----END CERTIFICATE-----"
+            "user_pool_id": {
+              "Ref": "UserPool"
+            },
+            "client_id": {
+              "Ref": "UserClient"
+            }
           }
         },
         "Role": {
@@ -257,40 +280,40 @@
         "PrivateEndpointLogGroup"
       ]
     },
-    "AuthLambdaVersionH88bJu1Tb9MCQSRcCfIcvwm1JDJFRqapraD4KWd0lM": {
+    "LoginLambdaVersion5fahz5LI5X7pnFTZl0Hk1ZAGOthKUL4KoVFXQKi07c": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "AuthLambdaFunction"
+          "Ref": "LoginLambdaFunction"
         },
-        "CodeSha256": "fumlb/5Eh31zWsHuJBVFH+pPQPYQcbjCaCLIjEk+/A0="
+        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
       }
     },
-    "PublicEndpointLambdaVersion3ImbijpyoI286JeyOUp680QoLndeROsT85siFzo6Hyc": {
+    "SignupLambdaVersionxn5CFCAWGgfPq5NbCbZ7WtntApY5gn89Y5iU6U": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
-          "Ref": "PublicEndpointLambdaFunction"
+          "Ref": "SignupLambdaFunction"
         },
-        "CodeSha256": "fumlb/5Eh31zWsHuJBVFH+pPQPYQcbjCaCLIjEk+/A0="
+        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
       }
     },
-    "PrivateEndpointLambdaVersionWp74DdUa82NUg8c2B3QG8E4vRD4m1XMa4GtRgaK1jLw": {
+    "PrivateEndpointLambdaVersionfCWoM13k6XF1sajfvwRlzZ20qeZJhD7qtWlyaD5GdU": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PrivateEndpointLambdaFunction"
         },
-        "CodeSha256": "fumlb/5Eh31zWsHuJBVFH+pPQPYQcbjCaCLIjEk+/A0="
+        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
       }
     },
     "ApiGatewayRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Name": "dev-auth-service",
+        "Name": "dev-auth-service-cognito",
         "EndpointConfiguration": {
           "Types": [
             "EDGE"
@@ -299,7 +322,7 @@
         "Policy": ""
       }
     },
-    "ApiGatewayResourcePublic": {
+    "ApiGatewayResourceUser": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
@@ -308,20 +331,41 @@
             "RootResourceId"
           ]
         },
-        "PathPart": "public",
+        "PathPart": "user",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "ApiGatewayResourcePrivate": {
+    "ApiGatewayResourceUserLogin": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
-          "Fn::GetAtt": [
-            "ApiGatewayRestApi",
-            "RootResourceId"
-          ]
+          "Ref": "ApiGatewayResourceUser"
+        },
+        "PathPart": "login",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceUserSignup": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceUser"
+        },
+        "PathPart": "signup",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceUserPrivate": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceUser"
         },
         "PathPart": "private",
         "RestApiId": {
@@ -329,7 +373,7 @@
         }
       }
     },
-    "ApiGatewayMethodPublicOptions": {
+    "ApiGatewayMethodUserLoginOptions": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -357,7 +401,7 @@
               "StatusCode": "200",
               "ResponseParameters": {
                 "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
               },
               "ResponseTemplates": {
@@ -367,14 +411,14 @@
           ]
         },
         "ResourceId": {
-          "Ref": "ApiGatewayResourcePublic"
+          "Ref": "ApiGatewayResourceUserLogin"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "ApiGatewayMethodPrivateOptions": {
+    "ApiGatewayMethodUserSignupOptions": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -402,7 +446,7 @@
               "StatusCode": "200",
               "ResponseParameters": {
                 "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
                 "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
               },
               "ResponseTemplates": {
@@ -412,20 +456,65 @@
           ]
         },
         "ResourceId": {
-          "Ref": "ApiGatewayResourcePrivate"
+          "Ref": "ApiGatewayResourceUserSignup"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         }
       }
     },
-    "ApiGatewayMethodPublicPost": {
+    "ApiGatewayMethodUserPrivateOptions": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "MethodResponses": [
+          {
+            "StatusCode": "200",
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "ResponseModels": {}
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "Type": "MOCK",
+          "RequestTemplates": {
+            "application/json": "{statusCode:200}"
+          },
+          "ContentHandling": "CONVERT_TO_TEXT",
+          "IntegrationResponses": [
+            {
+              "StatusCode": "200",
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+              },
+              "ResponseTemplates": {
+                "application/json": ""
+              }
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUserPrivate"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodUserLoginPost": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "HttpMethod": "POST",
         "RequestParameters": {},
         "ResourceId": {
-          "Ref": "ApiGatewayResourcePublic"
+          "Ref": "ApiGatewayResourceUserLogin"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
@@ -450,7 +539,7 @@
                 ":lambda:path/2015-03-31/functions/",
                 {
                   "Fn::GetAtt": [
-                    "PublicEndpointLambdaFunction",
+                    "LoginLambdaFunction",
                     "Arn"
                   ]
                 },
@@ -462,24 +551,70 @@
         "MethodResponses": []
       },
       "DependsOn": [
-        "PublicEndpointLambdaPermissionApiGateway"
+        "LoginLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayMethodPrivatePost": {
+    "ApiGatewayMethodUserSignupPost": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "HttpMethod": "POST",
         "RequestParameters": {},
         "ResourceId": {
-          "Ref": "ApiGatewayResourcePrivate"
+          "Ref": "ApiGatewayResourceUserSignup"
         },
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         },
         "ApiKeyRequired": false,
-        "AuthorizationType": "CUSTOM",
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "SignupLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "SignupLambdaPermissionApiGateway"
+      ]
+    },
+    "ApiGatewayMethodUserPrivatePost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceUserPrivate"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "COGNITO_USER_POOLS",
         "AuthorizerId": {
-          "Ref": "AuthApiGatewayAuthorizer"
+          "Ref": "PrivateAuthorizerApiGatewayAuthorizer"
         },
         "Integration": {
           "IntegrationHttpMethod": "POST",
@@ -510,43 +645,29 @@
         },
         "MethodResponses": []
       },
-      "DependsOn": "AuthApiGatewayAuthorizer"
+      "DependsOn": "PrivateAuthorizerApiGatewayAuthorizer"
     },
-    "AuthApiGatewayAuthorizer": {
+    "PrivateAuthorizerApiGatewayAuthorizer": {
       "Type": "AWS::ApiGateway::Authorizer",
       "Properties": {
+        "AuthorizerResultTtlInSeconds": 300,
         "IdentitySource": "method.request.header.Authorization",
-        "Name": "auth",
+        "Name": "PrivateAuthorizer",
         "RestApiId": {
           "Ref": "ApiGatewayRestApi"
         },
-        "AuthorizerUri": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition"
-              },
-              ":apigateway:",
-              {
-                "Ref": "AWS::Region"
-              },
-              ":lambda:path/2015-03-31/functions/",
-              {
-                "Fn::GetAtt": [
-                  "AuthLambdaFunction",
-                  "Arn"
-                ]
-              },
-              "/invocations"
+        "Type": "COGNITO_USER_POOLS",
+        "ProviderARNs": [
+          {
+            "Fn::GetAtt": [
+              "UserPool",
+              "Arn"
             ]
-          ]
-        },
-        "Type": "TOKEN"
+          }
+        ]
       }
     },
-    "ApiGatewayDeployment1678009980106": {
+    "ApiGatewayDeployment1688913852571": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -555,18 +676,57 @@
         "StageName": "dev"
       },
       "DependsOn": [
-        "ApiGatewayMethodPublicOptions",
-        "ApiGatewayMethodPrivateOptions",
-        "ApiGatewayMethodPublicPost",
-        "ApiGatewayMethodPrivatePost"
+        "ApiGatewayMethodUserLoginOptions",
+        "ApiGatewayMethodUserSignupOptions",
+        "ApiGatewayMethodUserPrivateOptions",
+        "ApiGatewayMethodUserLoginPost",
+        "ApiGatewayMethodUserSignupPost",
+        "ApiGatewayMethodUserPrivatePost"
       ]
     },
-    "PublicEndpointLambdaPermissionApiGateway": {
+    "LoginLambdaPermissionApiGateway": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "PublicEndpointLambdaFunction",
+            "LoginLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "SignupLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SignupLambdaFunction",
             "Arn"
           ]
         },
@@ -635,43 +795,6 @@
         }
       }
     },
-    "AuthLambdaPermissionApiGateway": {
-      "Type": "AWS::Lambda::Permission",
-      "Properties": {
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "AuthLambdaFunction",
-            "Arn"
-          ]
-        },
-        "Action": "lambda:InvokeFunction",
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition"
-              },
-              ":execute-api:",
-              {
-                "Ref": "AWS::Region"
-              },
-              ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
-              ":",
-              {
-                "Ref": "ApiGatewayRestApi"
-              },
-              "/*/*"
-            ]
-          ]
-        }
-      }
-    },
     "GatewayResponse": {
       "Type": "AWS::ApiGateway::GatewayResponse",
       "Properties": {
@@ -699,6 +822,42 @@
         },
         "StatusCode": "401"
       }
+    },
+    "UserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "UserPoolName": "auction-auth-pool",
+        "Schema": [
+          {
+            "Name": "email",
+            "Required": true,
+            "Mutable": true
+          }
+        ],
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 6
+          }
+        },
+        "AutoVerifiedAttributes": [
+          "email"
+        ]
+      }
+    },
+    "UserClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "ClientName": "auction-user-pool",
+        "GenerateSecret": false,
+        "UserPoolId": {
+          "Ref": "UserPool"
+        },
+        "AccessTokenValidity": 5,
+        "IdTokenValidity": 5,
+        "ExplicitAuthFlows": [
+          "ADMIN_NO_SRP_AUTH"
+        ]
+      }
     }
   },
   "Outputs": {
@@ -707,34 +866,34 @@
         "Ref": "ServerlessDeploymentBucket"
       },
       "Export": {
-        "Name": "sls-auth-service-dev-ServerlessDeploymentBucketName"
+        "Name": "sls-auth-service-cognito-dev-ServerlessDeploymentBucketName"
       }
     },
-    "AuthLambdaFunctionQualifiedArn": {
+    "LoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "AuthLambdaVersionH88bJu1Tb9MCQSRcCfIcvwm1JDJFRqapraD4KWd0lM"
+        "Ref": "LoginLambdaVersion5fahz5LI5X7pnFTZl0Hk1ZAGOthKUL4KoVFXQKi07c"
       },
       "Export": {
-        "Name": "sls-auth-service-dev-AuthLambdaFunctionQualifiedArn"
+        "Name": "sls-auth-service-cognito-dev-LoginLambdaFunctionQualifiedArn"
       }
     },
-    "PublicEndpointLambdaFunctionQualifiedArn": {
+    "SignupLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PublicEndpointLambdaVersion3ImbijpyoI286JeyOUp680QoLndeROsT85siFzo6Hyc"
+        "Ref": "SignupLambdaVersionxn5CFCAWGgfPq5NbCbZ7WtntApY5gn89Y5iU6U"
       },
       "Export": {
-        "Name": "sls-auth-service-dev-PublicEndpointLambdaFunctionQualifiedArn"
+        "Name": "sls-auth-service-cognito-dev-SignupLambdaFunctionQualifiedArn"
       }
     },
     "PrivateEndpointLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PrivateEndpointLambdaVersionWp74DdUa82NUg8c2B3QG8E4vRD4m1XMa4GtRgaK1jLw"
+        "Ref": "PrivateEndpointLambdaVersionfCWoM13k6XF1sajfvwRlzZ20qeZJhD7qtWlyaD5GdU"
       },
       "Export": {
-        "Name": "sls-auth-service-dev-PrivateEndpointLambdaFunctionQualifiedArn"
+        "Name": "sls-auth-service-cognito-dev-PrivateEndpointLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {
@@ -760,7 +919,7 @@
         ]
       },
       "Export": {
-        "Name": "sls-auth-service-dev-ServiceEndpoint"
+        "Name": "sls-auth-service-cognito-dev-ServiceEndpoint"
       }
     }
   }

@@ -1,10 +1,10 @@
 
-service: auth-service
+service: auth-service-cognito
 
-frameworkVersion: '3'
+frameworkVersion: '2'
 
-plugins:
-  - serverless-offline
+# plugins:
+#   - serverless-offline
 
 provider:
   name: aws
@@ -13,27 +13,68 @@ provider:
   profile: pdp-auction
   memorySize: 128
   environment:
-    AUTH0_PUBLIC_KEY: ${file(secret.pem)}
+    # AUTH0_PUBLIC_KEY: ${file(secret.pem)}
+    user_pool_id: { Ref: UserPool }
+    client_id: { Ref: UserClient }
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - cognito-idp:AdminInitiateAuth
+        - cognito-idp:AdminCreateUser
+        - cognito-idp:AdminSetUserPassword
+      Resource: "*"
 
 functions:
-  auth:
-    handler: src/handlers/auth.handler
-    cors: true
-  publicEndpoint:
-    handler: src/handlers/public.handler
+  login:
+    handler: user/login.handler
     events:
       - http:
-          path: public
-          method: POST
+          path: user/login
+          method: post
           cors: true
+
+  signup:
+    handler: user/signup.handler
+    events:
+      - http:
+          path: user/signup
+          method: post
+          cors: true
+
   privateEndpoint:
-    handler: src/handlers/private.handler
+    handler: user/private.handler
     events:
       - http:
-          path: private
-          method: POST
-          authorizer: auth
+          path: user/private
+          method: post
           cors: true
+          authorizer:
+            name: PrivateAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt:
+                - UserPool
+                - Arn
+            claims:
+              - email
+  # auth:
+  #   handler: src/handlers/auth.handler
+  #   cors: true
+  # publicEndpoint:
+  #   handler: src/handlers/public.handler
+  #   events:
+  #     - http:
+  #         path: public
+  #         method: POST
+  #         cors: true
+  # privateEndpoint:
+  #   handler: src/handlers/private.handler
+  #   events:
+  #     - http:
+  #         path: private
+  #         method: POST
+  #         authorizer: auth
+  #         cors: true
 
 resources:
   Resources:
@@ -58,3 +99,27 @@ resources:
         RestApiId:
           Ref: 'ApiGatewayRestApi'
         StatusCode: '401'
+    # This resources for AWS cognito pools
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: auction-auth-pool
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+        AutoVerifiedAttributes: ["email"]
+
+    UserClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: auction-user-pool
+        GenerateSecret: false
+        UserPoolId: { Ref: UserPool }
+        AccessTokenValidity: 5
+        IdTokenValidity: 5
+        ExplicitAuthFlows:
+          - "ADMIN_NO_SRP_AUTH"
