@@ -182,9 +182,9 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1689593331925-2023-07-17T11:28:51.925Z/auth-service-cognito.zip"
         },
-        "Handler": "user/login.handler",
+        "Handler": "src/handlers/login.handler",
         "Runtime": "nodejs16.x",
         "FunctionName": "auth-service-cognito-dev-login",
         "MemorySize": 128,
@@ -217,9 +217,9 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1689593331925-2023-07-17T11:28:51.925Z/auth-service-cognito.zip"
         },
-        "Handler": "user/signup.handler",
+        "Handler": "src/handlers/signup.handler",
         "Runtime": "nodejs16.x",
         "FunctionName": "auth-service-cognito-dev-signup",
         "MemorySize": 128,
@@ -252,9 +252,9 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/auth-service-cognito/dev/1688913873943-2023-07-09T14:44:33.943Z/auth-service-cognito.zip"
+          "S3Key": "serverless/auth-service-cognito/dev/1689593331925-2023-07-17T11:28:51.925Z/auth-service-cognito.zip"
         },
-        "Handler": "user/private.handler",
+        "Handler": "src/handlers/private.handler",
         "Runtime": "nodejs16.x",
         "FunctionName": "auth-service-cognito-dev-privateEndpoint",
         "MemorySize": 128,
@@ -280,34 +280,34 @@
         "PrivateEndpointLogGroup"
       ]
     },
-    "LoginLambdaVersion5fahz5LI5X7pnFTZl0Hk1ZAGOthKUL4KoVFXQKi07c": {
+    "LoginLambdaVersions2BQN7SdsVhvdKWdCf9wKe1GfRS7xG36eKtBfVdgfs": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "LoginLambdaFunction"
         },
-        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
+        "CodeSha256": "EHumDf3IXnUCsbfxrT+z7kVjkkdKJ3bqU6KMgEAn6js="
       }
     },
-    "SignupLambdaVersionxn5CFCAWGgfPq5NbCbZ7WtntApY5gn89Y5iU6U": {
-      "Type": "AWS::Lambda::Version",
-      "DeletionPolicy": "Retain",
-      "Properties": {
-        "FunctionName": {
-          "Ref": "SignupLambdaFunction"
-        },
-        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
-      }
-    },
-    "PrivateEndpointLambdaVersionfCWoM13k6XF1sajfvwRlzZ20qeZJhD7qtWlyaD5GdU": {
+    "PrivateEndpointLambdaVersionARdesTmZBHdl5K3uzWDWwvNP6MF4jBWhoZsgGLkY": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "PrivateEndpointLambdaFunction"
         },
-        "CodeSha256": "Mbjd+QdB5Cy5eQp/KtBsG4dzNMFyby5qd9iXYvPpeY0="
+        "CodeSha256": "EHumDf3IXnUCsbfxrT+z7kVjkkdKJ3bqU6KMgEAn6js="
+      }
+    },
+    "SignupLambdaVersionKgywnj1xZu4C8yvqYTCFsv3M1iOQhFQ451KqNGc2kI": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SignupLambdaFunction"
+        },
+        "CodeSha256": "EHumDf3IXnUCsbfxrT+z7kVjkkdKJ3bqU6KMgEAn6js="
       }
     },
     "ApiGatewayRestApi": {
@@ -667,7 +667,7 @@
         ]
       }
     },
-    "ApiGatewayDeployment1688913852571": {
+    "ApiGatewayDeployment1689593315536": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -872,28 +872,28 @@
     "LoginLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "LoginLambdaVersion5fahz5LI5X7pnFTZl0Hk1ZAGOthKUL4KoVFXQKi07c"
+        "Ref": "LoginLambdaVersions2BQN7SdsVhvdKWdCf9wKe1GfRS7xG36eKtBfVdgfs"
       },
       "Export": {
         "Name": "sls-auth-service-cognito-dev-LoginLambdaFunctionQualifiedArn"
       }
     },
-    "SignupLambdaFunctionQualifiedArn": {
-      "Description": "Current Lambda function version",
-      "Value": {
-        "Ref": "SignupLambdaVersionxn5CFCAWGgfPq5NbCbZ7WtntApY5gn89Y5iU6U"
-      },
-      "Export": {
-        "Name": "sls-auth-service-cognito-dev-SignupLambdaFunctionQualifiedArn"
-      }
-    },
     "PrivateEndpointLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "PrivateEndpointLambdaVersionfCWoM13k6XF1sajfvwRlzZ20qeZJhD7qtWlyaD5GdU"
+        "Ref": "PrivateEndpointLambdaVersionARdesTmZBHdl5K3uzWDWwvNP6MF4jBWhoZsgGLkY"
       },
       "Export": {
         "Name": "sls-auth-service-cognito-dev-PrivateEndpointLambdaFunctionQualifiedArn"
+      }
+    },
+    "SignupLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "SignupLambdaVersionKgywnj1xZu4C8yvqYTCFsv3M1iOQhFQ451KqNGc2kI"
+      },
+      "Export": {
+        "Name": "sls-auth-service-cognito-dev-SignupLambdaFunctionQualifiedArn"
       }
     },
     "ServiceEndpoint": {

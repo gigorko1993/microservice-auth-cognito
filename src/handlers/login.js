@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk')
-const { sendResponse, validateInput } = require("./helpers");
+const { sendResponse, validateInput } = require("../lib/helpers");
 
 const cognito = new AWS.CognitoIdentityServiceProvider()
 
@@ -12,6 +12,7 @@ module.exports.handler = async (event) => {
         const { email, password } = JSON.parse(event.body)
         const { user_pool_id, client_id } = process.env
         const params = {
+            // login user due to username and password
             AuthFlow: "ADMIN_NO_SRP_AUTH",
             UserPoolId: user_pool_id,
             ClientId: client_id,

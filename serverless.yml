@@ -4,7 +4,7 @@ service: auth-service-cognito
 frameworkVersion: '2'
 
 # plugins:
-#   - serverless-offline
+#   - serverless-cognito-add-custom-attributes
 
 provider:
   name: aws
@@ -13,7 +13,6 @@ provider:
   profile: pdp-auction
   memorySize: 128
   environment:
-    # AUTH0_PUBLIC_KEY: ${file(secret.pem)}
     user_pool_id: { Ref: UserPool }
     client_id: { Ref: UserClient }
   iamRoleStatements:
@@ -26,23 +25,22 @@ provider:
 
 functions:
   login:
-    handler: user/login.handler
+    handler:  src/handlers/login.handler
     events:
       - http:
           path: user/login
           method: post
           cors: true
-
   signup:
-    handler: user/signup.handler
+    handler: src/handlers/signup.handler
     events:
       - http:
-          path: user/signup
+          path:  user/signup
           method: post
           cors: true
 
   privateEndpoint:
-    handler: user/private.handler
+    handler:  src/handlers/private.handler
     events:
       - http:
           path: user/private
@@ -57,24 +55,6 @@ functions:
                 - Arn
             claims:
               - email
-  # auth:
-  #   handler: src/handlers/auth.handler
-  #   cors: true
-  # publicEndpoint:
-  #   handler: src/handlers/public.handler
-  #   events:
-  #     - http:
-  #         path: public
-  #         method: POST
-  #         cors: true
-  # privateEndpoint:
-  #   handler: src/handlers/private.handler
-  #   events:
-  #     - http:
-  #         path: private
-  #         method: POST
-  #         authorizer: auth
-  #         cors: true
 
 resources:
   Resources:
