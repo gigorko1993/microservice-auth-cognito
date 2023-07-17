@@ -25,7 +25,7 @@ provider:
 
 functions:
   login:
-    handler:  src/handlers/login.handler
+    handler: src/handlers/login.handler
     events:
       - http:
           path: user/login
@@ -55,6 +55,13 @@ functions:
                 - Arn
             claims:
               - email
+  publicEndpoint:
+    handler: src/handlers/public.handler
+    events:
+      - http:
+          path: public
+          method: POST
+          cors: true
 
 resources:
   Resources:
@@ -83,7 +90,7 @@ resources:
     UserPool:
       Type: AWS::Cognito::UserPool
       Properties:
-        UserPoolName: auction-auth-pool
+        UserPoolName: serverless-auth-pool
         Schema:
           - Name: email
             Required: true
